@@ -1,1 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>League Image Space</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Crimson+Pro&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #c9a84c; --gold-light: #e8c870; --gold-dim: #3a2e10;
+            --bg-dark: #04060e; --bg-card: #080c1c; --bg-panel: #0c1228;
+            --border: #1e2848; --border-gold: #3a2e10;
+            --text-main: #d0d8f0; --text-dim: #6878a8;
+            --nw:#2ecfff; --ob:#b07eef; --wh:#e8b84b; --eb:#e85050; --mg:#a0b8d0; --hr:#60c080;
+        }
+        body { background: var(--bg-dark); color: var(--text-main); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; text-align: center; }
+
+        h1 { font-family: 'Cinzel', serif; color: var(--gold); letter-spacing: 4px; margin-bottom: 30px; text-shadow: 0 0 15px rgba(201,168,76,0.3); }
+
+        /* TAB NAV */
+        .tab-nav { display:flex; justify-content:center; gap:10px; margin-bottom:36px; flex-wrap:wrap; }
+        .tab-btn { font-family:'Cinzel',serif; font-size:.78rem; font-weight:700; letter-spacing:.12em; padding:9px 22px; border-radius:50px; border:1px solid var(--border); background:transparent; color:var(--text-dim); cursor:pointer; transition:all .2s; }
+        .tab-btn:hover { color:var(--gold); border-color:var(--gold-dim); }
+        .tab-btn.active { color:var(--gold); border-color:var(--gold); background:rgba(201,168,76,.09); }
+
+        /* GALLERY */
+        .league-section {
+            margin: 40px auto;
+            max-width: 1200px;
+            border: 2px solid var(--gold-dim);
+            border-radius: 15px;
+            padding: 30px;
+            background: rgba(8, 12, 28, 0.5);
+            position: relative;
+        }
+        .league-title {
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-dark);
+            padding: 0 20px;
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            font-size: 1.5rem;
+            white-space: nowrap;
+        }
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .img-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px;
+        }
+        .img-card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 6px; cursor: grab; }
+        .img-card img.square { aspect-ratio: 1/1; }
+        .img-card img:active { cursor: grabbing; }
+        .name { margin-top: 10px; font-size: 0.85rem; color: var(--gold); font-weight: bold; }
+        #page-counter { width: auto !important; height: 32px !important; display: inline-block !important; }
+
+        /* CARD ACTIONS — 4 buttons */
+        .card-actions { display:flex; gap:4px; margin-top:8px; justify-content:center; flex-wrap:wrap; }
+        .act-btn { flex:1; min-width:40px; font-family:'Cinzel',serif; font-size:.58rem; font-weight:700; letter-spacing:.04em; padding:6px 2px; border-radius:6px; border:1px solid var(--border-gold); background:rgba(201,168,76,.06); color:var(--gold); cursor:pointer; transition:all .2s; white-space:nowrap; }
+        .act-btn:hover { background:rgba(201,168,76,.18); border-color:var(--gold); color:var(--gold-light); }
+        .act-btn.ok { border-color:#60c080; color:#60c080; }
+        .act-btn.err { border-color:#e85050; color:#e85050; }
+        .act-btn.dm { border-color:rgba(46,207,255,.35); color:#2ecfff; background:rgba(46,207,255,.04); }
+        .act-btn.dm:hover { background:rgba(46,207,255,.12); border-color:#2ecfff; color:#fff; }
+
+        .vault-hint { max-width:900px; margin:-14px auto 10px; font-size:.95rem; color:var(--text-dim); font-style:italic; }
+        #toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--bg-panel); border:1px solid var(--gold); color:var(--gold-light); font-family:'Cinzel',serif; font-size:.8rem; letter-spacing:.06em; padding:10px 20px; border-radius:30px; opacity:0; pointer-events:none; transition:all .25s; z-index:99; max-width:90vw; }
+        #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+        /* LEAGUES INFO */
+        .li-wrap { max-width:860px; margin:0 auto; padding:8px 20px 48px; text-align:left; }
+        .li-intro { font-size:1rem; color:var(--text-dim); line-height:1.7; margin-bottom:28px; text-align:center; font-style:italic; }
+        .li-card { background:var(--bg-card); border:1px solid var(--border-gold); border-radius:10px; overflow:hidden; margin-bottom:28px; }
+        .li-card-hdr { display:flex; align-items:center; gap:14px; padding:16px 22px; background:var(--bg-dark); border-bottom:2px solid var(--border-gold); }
+        .li-card-icon { font-size:1.6rem; flex-shrink:0; }
+        .li-card-titles { display:flex; flex-direction:column; gap:2px; flex:1; }
+        .li-card-name { font-family:'Cinzel',serif; font-size:1.15rem; font-weight:900; letter-spacing:.08em; color:var(--gold); }
+        .li-card-tag { font-family:'Cinzel',serif; font-size:.74rem; letter-spacing:.18em; color:var(--text-dim); text-transform:uppercase; }
+        .li-card-body { padding:18px 22px; }
+        .li-desc { font-size:1rem; color:var(--text-main); line-height:1.7; margin-bottom:16px; }
+        .li-section-title { font-family:'Cinzel',serif; font-size:.8rem; font-weight:700; letter-spacing:.22em; color:var(--gold-light); text-transform:uppercase; margin-bottom:10px; border-bottom:1px solid var(--border); padding-bottom:6px; margin-top:18px; }
+        .li-schedule { display:flex; flex-direction:column; gap:5px; margin-bottom:18px; }
+        .li-sched-row { display:flex; align-items:baseline; gap:8px; padding:5px 8px; border-radius:4px; background:var(--bg-panel); flex-wrap:wrap; }
+        .li-sched-day { font-family:'Cinzel',serif; font-size:.74rem; font-weight:700; letter-spacing:.06em; color:var(--text-dim); min-width:100px; flex-shrink:0; }
+        .li-sched-time { font-family:'Cinzel',serif; font-size:.8rem; color:var(--text-dim); min-width:76px; flex-shrink:0; }
+        .li-sched-game { font-size:.92rem; color:var(--text-main); flex:1; }
+        .li-sched-note { font-size:.82rem; color:var(--text-dim); font-style:italic; margin-left:4px; }
+        .li-week-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:18px; }
+        .li-links { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:4px; }
+        .li-link { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:20px; border:1px solid var(--border-gold); background:rgba(201,168,76,.06); color:var(--gold); font-family:'Cinzel',serif; font-size:.71rem; font-weight:700; letter-spacing:.08em; text-decoration:none; transition:all .2s; white-space:nowrap; }
+        .li-link:hover { background:rgba(201,168,76,.15); border-color:var(--gold); color:var(--gold-light); }
+        .li-org-links { display:flex; flex-wrap:wrap; gap:7px; margin-top:8px; }
+        .li-org-link { font-family:'Cinzel',serif; font-size:.71rem; font-weight:700; padding:5px 13px; border-radius:20px; border:1px solid var(--border-gold); color:var(--text-dim); text-decoration:none; transition:all .2s; }
+        .li-org-link:hover { color:var(--gold); border-color:var(--gold); background:rgba(201,168,76,.08); }
+        .li-join-note { font-size:.82rem; color:var(--text-dim); margin-top:9px; font-style:italic; line-height:1.5; }
+        .li-note { font-size:.88rem; color:var(--text-dim); font-style:italic; margin-top:8px; text-align:center; line-height:1.7; }
+        @media(max-width:700px) { .li-week-grid { grid-template-columns:1fr; } }
+
+        /* Per-league accent */
+        .li-card.nw .li-card-hdr{border-bottom-color:rgba(46,207,255,.35);} .li-card.nw .li-card-name{color:#2ecfff;} .li-card.nw .li-sched-day{color:#2ecfff;}
+        .li-card.nw .li-link{border-color:rgba(46,207,255,.25);color:#2ecfff;} .li-card.nw .li-link:hover{background:rgba(46,207,255,.1);border-color:#2ecfff;color:#fff;}
+        .li-card.ob .li-card-hdr{border-bottom-color:rgba(176,126,239,.35);} .li-card.ob .li-card-name{color:#b07eef;} .li-card.ob .li-sched-day{color:#b07eef;}
+        .li-card.ob .li-link{border-color:rgba(176,126,239,.25);color:#b07eef;} .li-card.ob .li-link:hover{background:rgba(176,126,239,.1);border-color:#b07eef;color:#fff;}
+        .li-card.wh .li-card-hdr{border-bottom-color:rgba(232,184,75,.35);} .li-card.wh .li-card-name{color:#e8b84b;} .li-card.wh .li-sched-day{color:#e8b84b;}
+        .li-card.wh .li-link{border-color:rgba(232,184,75,.25);color:#e8b84b;} .li-card.wh .li-link:hover{background:rgba(232,184,75,.1);border-color:#e8b84b;color:#fff;}
+        .li-card.eb .li-card-hdr{border-bottom-color:rgba(232,80,80,.35);} .li-card.eb .li-card-name{color:#e85050;} .li-card.eb .li-sched-day{color:#e85050;}
+        .li-card.eb .li-link{border-color:rgba(232,80,80,.25);color:#e85050;} .li-card.eb .li-link:hover{background:rgba(232,80,80,.1);border-color:#e85050;color:#fff;}
+        .li-card.mg .li-card-hdr{border-bottom-color:rgba(160,184,208,.35);} .li-card.mg .li-card-name{color:#a0b8d0;} .li-card.mg .li-sched-day{color:#a0b8d0;}
+        .li-card.mg .li-link{border-color:rgba(160,184,208,.25);color:#a0b8d0;} .li-card.mg .li-link:hover{background:rgba(160,184,208,.1);border-color:#a0b8d0;color:#fff;}
+        .li-card.hr .li-card-hdr{border-bottom-color:rgba(96,192,128,.35);} .li-card.hr .li-card-name{color:#60c080;} .li-card.hr .li-sched-day{color:#60c080;}
+        .li-card.hr .li-link{border-color:rgba(96,192,128,.25);color:#60c080;} .li-card.hr .li-link:hover{background:rgba(96,192,128,.1);border-color:#60c080;color:#fff;}
+
+        @media(max-width:700px) { .card-actions{flex-wrap:wrap;} }
+    </style>
+</head>
+<body>
+
+    <h1>League Image Space</h1>
+
+    <nav class="tab-nav">
+        <button class="tab-btn active" onclick="switchTab('gallery')">🖼 Image Gallery</button>
+        <button class="tab-btn" onclick="switchTab('leagueinfo')">🗺 Leagues Info</button>
+    </nav>
+
+    <!-- IMAGE GALLERY TAB -->
+    <div id="tab-gallery">
+        <p class="vault-hint">Drag any image into Replay&rsquo;s DM box, or use the buttons under each one. <b>DM</b> copies a ready-to-paste Markdown image link for Replay private messages.</p>
+        <div style="text-align:center;margin-bottom:18px;">
+            <button class="tab-btn" onclick="refreshGallery(this)" style="font-size:.72rem;">🔄 Refresh Gallery</button>
+        </div>
+        <div id="main-container">Loading Image Folders...</div>
+        <div style="margin-top: 80px; padding-bottom: 60px; text-align: center; clear: both;">
+            <img id="page-counter" src="https://hitscounter.dev/api/hit?url=https%3A%2F%2Frainsplace.github.io%2FImageSpace%2F&label=Visits&icon=image&color=%23c9a84c&style=flat">
+        </div>
+    </div>
+
+    <!-- LEAGUES INFO TAB -->
+    <div id="tab-leagueinfo" style="display:none">
+    <div class="li-wrap">
+
+      <p class="li-intro">Six private leagues, one community. From team poker to individual grinders, early birds to night owls &mdash; there&rsquo;s a game for every style and every schedule.</p>
+
+      <!-- Nordic Warriors -->
+      <div class="li-card nw">
+        <div class="li-card-hdr">
+          <span class="li-card-icon">⚔️</span>
+          <div class="li-card-titles">
+            <span class="li-card-name">Nordic Warriors</span>
+            <span class="li-card-tag">Individual Points League · Private · 20,000 Chip Entry</span>
+          </div>
+        </div>
+        <div class="li-card-body">
+          <p class="li-desc">Nordic Warriors is an individual points-based league with no attendance requirement. Play any or all games &mdash; your top 12 Hold&rsquo;em finishes and top 12 Omaha Hi/Lo finishes count toward the leaderboard each quarter. Show up when you can, compete at your own pace.</p>
+          <div class="li-section-title">Weekly Schedule (EST)</div>
+          <div class="li-schedule">
+            <div class="li-sched-row"><span class="li-sched-day">Tuesday</span><span class="li-sched-time">9:00 PM</span><span class="li-sched-game">Medieval Matrix <span class="li-sched-note">Omaha Hi/Lo</span></span></div>
+            <div class="li-sched-row"><span class="li-sched-day">Friday</span><span class="li-sched-time">9:00 PM</span><span class="li-sched-game">Valhalla&rsquo;s Chosen <span class="li-sched-note">NL Hold'em</span></span></div>
+            <div class="li-sched-row"><span class="li-sched-day">Saturday</span><span class="li-sched-time">6:30 PM</span><span class="li-sched-game">Thor&rsquo;s Hammer <span class="li-sched-note">Omaha Hi/Lo</span></span></div>
+            <div class="li-sched-row"><span class="li-sched-day">Saturday</span><span class="li-sched-time">9:00 PM</span><span class="li-sched-game">Odin&rsquo;s Army <span class="li-sched-note">NL Hold'em</span></span></div>
+          </div>
+          <div class="li-section-title">Links</div>
+          <div class="li-links">
+            <a class="li-link" href="https://www.casino.org/replaypoker/leagues/67" target="_blank" rel="noopener">🏰 League Lobby</a>
+            <a class="li-link" href="https://rainsplace.github.io/NWWebApp/" target="_blank" rel="noopener">📊 Web App Leaderboard</a>
+            <a class="li-link" href="https://docs.google.com/spreadsheets/d/12rb6HCY_sctnkSWpIGYN0aFILAp7lTrrJBxIe7PuoTw/edit?usp=sharing" target="_blank" rel="noopener">📋 Sheets Leaderboard</a>
+            <a class="li-link" href="https://forum.casino.org/t/nordic-warriors-league/43535/9999" target="_blank" rel="noopener">💬 Forum</a>
+          </div>
+          <div class="li-section-title">Organizers</div>
+          <div class="li-org-links">
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/_Rain_" target="_blank" rel="noopener">_Rain_</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/_snowman_" target="_blank" rel="noopener">_snowman_</a>
+          </div>
+          <p class="li-join-note">Interested in joining? Send a message or friend request to any organizer above.</p>
+        </div>
+      </div>
+
+      <!-- Orion's Belt -->
+      <div class="li-card ob">
+        <div class="li-card-hdr">
+          <span class="li-card-icon">⭐</span>
+          <div class="li-card-titles">
+            <span class="li-card-name">Orion&rsquo;s Belt Team Poker League</span>
+            <span class="li-card-tag">Team League · Two-Month Cycles · Three Divisions · Once a Week · 20,000 Chip Entry</span>
+          </div>
+        </div>
+        <div class="li-card-body">
+          <p class="li-desc">Orion&rsquo;s Belt is a team-based poker league inspired by the three stars in Orion&rsquo;s Belt &mdash; Alnitak, Alnilam, and Mintaka. You play as an individual while competing on a team, with separate tables running simultaneously. Seasons run in two-month cycles across three rotating divisions.</p>
+          <div class="li-section-title">Weekly Schedule (ET)</div>
+          <div class="li-schedule">
+            <div class="li-sched-row"><span class="li-sched-day">Sunday</span><span class="li-sched-time">11:00 AM</span><span class="li-sched-game">Weekly Game <span class="li-sched-note">All three divisions</span></span></div>
+          </div>
+          <div class="li-section-title">Links</div>
+          <div class="li-links">
+            <a class="li-link" href="https://www.casino.org/replaypoker/leagues/81" target="_blank" rel="noopener">🏰 Alnitak Lobby</a>
+            <a class="li-link" href="https://www.casino.org/replaypoker/leagues/82" target="_blank" rel="noopener">🏰 Alnilam Lobby</a>
+            <a class="li-link" href="https://www.casino.org/replaypoker/leagues/83" target="_blank" rel="noopener">🏰 Mintaka Lobby</a>
+            <a class="li-link" href="https://rainsplace.github.io/OBLB/" target="_blank" rel="noopener">📊 Web App Leaderboard</a>
+            <a class="li-link" href="https://docs.google.com/spreadsheets/d/17ikWbLuxYSBvZaQYnoMfsKRzUNlhujPWAHCKFwCRYRI/edit?gid=1885499830#gid=1885499830" target="_blank" rel="noopener">📋 Sheets Leaderboard</a>
+            <a class="li-link" href="https://forum.casino.org/t/orions-belt-team-poker/57677/9999" target="_blank" rel="noopener">💬 Forum</a>
+            <a class="li-link" href="https://docs.google.com/document/d/e/2PACX-1vQUMrFRBbHeECRuUf4t3Pmh0_aAtVkaR4CxPh1IPVFXSS4qYeUR8EOAqviqv99ub1wORQIb60CU5qo3/pub" target="_blank" rel="noopener">📖 How It Works</a>
+            <a class="li-link" href="https://script.google.com/macros/s/AKfycbwUHbg75pPTY1-kvNNd8DxRh_CyZCkDNTjrmzcrw8oKA3o3Yw2gOKoNImtazZVchmzD/exec" target="_blank" rel="noopener">🎖 Captain&rsquo;s Hub</a>
+          </div>
+          <div class="li-section-title">Organizers</div>
+          <div class="li-org-links">
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/_Rain_" target="_blank" rel="noopener">_Rain_</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/_snowman_" target="_blank" rel="noopener">_snowman_</a>
+          </div>
+          <p class="li-join-note">Interested in joining? Send a message or friend request to any organizer above.</p>
+        </div>
+      </div>
+
+      <!-- Wildhorses -->
+      <div class="li-card wh">
+        <div class="li-card-hdr">
+          <span class="li-card-icon">🐎</span>
+          <div class="li-card-titles">
+            <span class="li-card-name">Weedwoman420&rsquo;s Wildhorses Poker League</span>
+            <span class="li-card-tag">Poker Variety League · Bi-Weekly Rotation · Six Game Types · 20,000 Chip Entry</span>
+          </div>
+        </div>
+        <div class="li-card-body">
+          <p class="li-desc">Wildhorses embraces poker variety in a bi-weekly rotating format inspired by H.O.R.S.E. &mdash; six different game types spread across two alternating weeks. Always check the lobby for any schedule updates.</p>
+          <div class="li-week-grid">
+            <div>
+              <div class="li-section-title">Week One</div>
+              <div class="li-schedule">
+                <div class="li-sched-row"><span class="li-sched-day">Tue</span><span class="li-sched-time">10:00 AM</span><span class="li-sched-game">NL Royal Hold&rsquo;em <span class="li-sched-note">(Secretariat)</span></span></div>
+                <div class="li-sched-row"><span class="li-sched-day">Tue</span><span class="li-sched-time">7:00 PM</span><span class="li-sched-game">NL Royal Hold&rsquo;em <span class="li-sched-note">(Pilgrim)</span></span></div>
+                <div class="li-sched-row"><span class="li-sched-day">Thu</span><span class="li-sched-time">10:00 AM</span><span class="li-sched-game">FL 7 Card Stud <span class="li-sched-note">(Silver)</span></span></div>
+                <div class="li-sched-row"><span class="li-sched-day">Thu</span><span class="li-sched-time">7:00 PM</span><span class="li-sched-game">FL 7 Card Stud <span class="li-sched-note">(Mr Ed)</span></span></div>
+                <div class="li-sched-row"><span class="li-sched-day">Fri</span><span class="li-sched-time">7:00 PM</span><span class="li-sched-game">NL Omaha Hi/Lo <span class="li-sched-note">(Bullseye)</span></span></div>
+                <div class="li-sched-row"><span class="li-sched-day">Sat</span><span class="li-sched-time">10:00 AM</span><span class="li-sched-game">NL Omaha Hi/Lo <span class="li-sched-note">(Affirmed)</span></span></div>
+              </div>
+            </div>
+            <div>
+              <div class="li-section-title">Week Two</div>
+              <div class="li-schedule">
+                <div class="li-sched-row"><span class="li-sched-day">Tue</span><span class="li-sched-time">10:00 AM</span><span class="li-sched-game">PL Omaha <span class="li-sched-note">(Trigger)</span></span></div>
+                <div class="li-sched-row"><span class="li-sched-day">Tue</span><span class="li-sched-time">7:00 PM</span><span class="li-sched-game">PL Omaha <span class="li-sched-note">(Spirit)</span></span></div>
+                <div class="li-sched-row"><span class="li-sched-day">Thu</span><span class="li-sched-time">10:00 AM</span><span class="li-sched-game">FL Stud Hi/Lo <span class="li-sched-note">(Traveler)</span></span></div>
+                <div class="li-sched-row"><span class="li-sched-day">Thu</span><span class="li-sched-time">7:00 PM</span><span class="li-sched-game">FL Stud Hi/Lo <span class="li-sched-note">(Shadowfax)</span></span></div>
+                <div class="li-sched-row"><span class="li-sched-day">Fri</span><span class="li-sched-time">7:00 PM</span><span class="li-sched-game">NL Hold&rsquo;em <span class="li-sched-note">(Black Beauty)</span></span></div>
+                <div class="li-sched-row"><span class="li-sched-day">Sat</span><span class="li-sched-time">10:00 AM</span><span class="li-sched-game">NL Hold&rsquo;em <span class="li-sched-note">(Sea Biscuit)</span></span></div>
+              </div>
+            </div>
+          </div>
+          <div class="li-section-title">Links</div>
+          <div class="li-links">
+            <a class="li-link" href="https://casino.org/replaypoker/leagues/58" target="_blank" rel="noopener">🏰 League Lobby</a>
+            <a class="li-link" href="https://mnorrismarshall-web.github.io/Wildhorses/" target="_blank" rel="noopener">📊 Web App Leaderboard</a>
+            <a class="li-link" href="https://docs.google.com/spreadsheets/d/1RB39pF7h4wl4WODQsSTmNnQJOcLAIuwVvSvIPTtsiS4/edit?usp=sharing" target="_blank" rel="noopener">📋 Sheets Leaderboard</a>
+            <a class="li-link" href="https://forum.casino.org/t/wildhorses-poker-league/37500/9999" target="_blank" rel="noopener">💬 Forum</a>
+          </div>
+          <div class="li-section-title">Organizers</div>
+          <div class="li-org-links">
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/_Rain_" target="_blank" rel="noopener">_Rain_</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/_snowman_" target="_blank" rel="noopener">_snowman_</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/Weedwoman420" target="_blank" rel="noopener">Weedwoman420</a>
+          </div>
+          <p class="li-join-note">Interested in joining? Send a message or friend request to any organizer above.</p>
+        </div>
+      </div>
+
+      <!-- High Roller Series -->
+      <div class="li-card hr">
+        <div class="li-card-hdr">
+          <span class="li-card-icon">🎰</span>
+          <div class="li-card-titles">
+            <span class="li-card-name">High Roller Series</span>
+            <span class="li-card-tag">High Stakes · Weekly Events · 250,000+ Chip Entry</span>
+          </div>
+        </div>
+        <div class="li-card-body">
+          <p class="li-desc">The High Roller Series runs inside the Leagues Invitational lobby and features the highest-stakes games in the private league community. Three games run each week — High Roller Open on Sunday, Big Ballerz on Wednesday, and a Deep Stack event alternating between NLHE and Omaha Hi/Lo each Monday — drawing the best players from across all leagues.</p>
+          <div class="li-section-title">Weekly Schedule (EST)</div>
+          <div class="li-schedule">
+            <div class="li-sched-row"><span class="li-sched-day">Sunday</span><span class="li-sched-time">6:30 PM</span><span class="li-sched-game">High Roller Open <span class="li-sched-note">NL Hold'em · 250k entry</span></span></div>
+            <div class="li-sched-row"><span class="li-sched-day">Wednesday</span><span class="li-sched-time">7:00 PM</span><span class="li-sched-game">Big Ballerz <span class="li-sched-note">Omaha Hi/Lo · 250k entry</span></span></div>
+            <div class="li-sched-row"><span class="li-sched-day">Mon (alt)</span><span class="li-sched-time">6:30 PM</span><span class="li-sched-game">Deep Stack NLHE <span class="li-sched-note">NL Hold'em · 250k entry</span></span></div>
+            <div class="li-sched-row"><span class="li-sched-day">Mon (alt)</span><span class="li-sched-time">6:30 PM</span><span class="li-sched-game">Deep Stack NLOL <span class="li-sched-note">Omaha Hi/Lo · 250k entry</span></span></div>
+          </div>
+          <div class="li-section-title">Links</div>
+          <div class="li-links">
+            <a class="li-link" href="https://www.casino.org/replaypoker/leagues/77" target="_blank" rel="noopener">🏰 League Lobby</a>
+            <a class="li-link" href="https://rainsplace.github.io/HighRoller/" target="_blank" rel="noopener">📊 High Rollers Web App</a>
+            <a class="li-link" href="https://docs.google.com/spreadsheets/d/1tR7bD0Kv7vuFX_FJVZF7RxsStf6OUI6Nr21LTp9Hp6s/edit?gid=34561392#gid=34561392" target="_blank" rel="noopener">📋 High Rollers Leaderboard</a>
+          </div>
+          <div class="li-section-title">Organizers</div>
+          <div class="li-org-links">
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/_Rain_" target="_blank" rel="noopener">_Rain_</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/_snowman_" target="_blank" rel="noopener">_snowman_</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/Weedwoman420" target="_blank" rel="noopener">Weedwoman420</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/SuzyQQ" target="_blank" rel="noopener">SuzyQQ</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/Rainman772" target="_blank" rel="noopener">Rainman772</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/Despina11" target="_blank" rel="noopener">Despina11</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/Sue13" target="_blank" rel="noopener">Sue13</a>
+          </div>
+          <p class="li-join-note">Interested in joining? Send a message or friend request to any organizer above.</p>
+        </div>
+      </div>
+
+      <!-- Whit's Bounty Open & Player Appreciation -->
+      <div class="li-card">
+        <div class="li-card-hdr">
+          <span class="li-card-icon">🎖</span>
+          <div class="li-card-titles">
+            <span class="li-card-name">Whit&rsquo;s Bounty Open &amp; Player Appreciation</span>
+            <span class="li-card-tag">Multi-League · Special Events · Open to League Members · 5,000–20,000 Chip Entry</span>
+          </div>
+        </div>
+        <div class="li-card-body">
+          <p class="li-desc">Whit&rsquo;s Bounty Open is a Wednesday afternoon rebuy/addon/bounty tournament open to all league members. Player Appreciation events run monthly &mdash; two Sunday MTTs and a special Midnight Grind Wednesday session &mdash; with massive added prize pools and no leaderboard pressure.</p>
+          <div class="li-section-title">Whit&rsquo;s Bounty Open</div>
+          <div class="li-schedule">
+            <div class="li-sched-row"><span class="li-sched-day">Wednesday</span><span class="li-sched-time">2:30 PM EST</span><span class="li-sched-game">Whit&rsquo;s Bounty Open <span class="li-sched-note">NL Hold'em · 20k · Rebuy/Addon/Bounties · 500k Guaranteed</span></span></div>
+          </div>
+          <div class="li-section-title">Player Appreciation Events</div>
+          <div class="li-schedule">
+            <div class="li-sched-row"><span class="li-sched-day">1st Sunday</span><span class="li-sched-time">11:00 AM PST</span><span class="li-sched-game">Player Appreciation <span class="li-sched-note">NL Omaha Hi/Lo · 5k entry · 1,000,000 added</span></span></div>
+            <div class="li-sched-row"><span class="li-sched-day">Last Sunday</span><span class="li-sched-time">11:00 AM PST</span><span class="li-sched-game">Player Appreciation <span class="li-sched-note">NL Hold'em · 5k entry · 1,000,000 added</span></span></div>
+            <div class="li-sched-row"><span class="li-sched-day">Last Wednesday</span><span class="li-sched-time">7:00 PM ET</span><span class="li-sched-game">Midnight Grind Player Appreciation <span class="li-sched-note">NL Hold'em · 20k entry · 1,000,000 added</span></span></div>
+          </div>
+          <div class="li-section-title">Links</div>
+          <div class="li-links">
+            <a class="li-link" href="https://www.casino.org/replaypoker/leagues/77" target="_blank" rel="noopener">🏰 League Lobby</a>
+            <a class="li-link" href="https://rainsplace.github.io/Player-Appreciation/" target="_blank" rel="noopener">📊 Player Appreciation Web App</a>
+            <a class="li-link" href="https://docs.google.com/spreadsheets/d/1E47o1t4A5CcSoFHOq9_sfQOztZQmgP5Lx9s9RNcNW8I/edit?gid=2100284398#gid=2100284398" target="_blank" rel="noopener">📋 Player Appreciation Leaderboard</a>
+          </div>
+          <div class="li-section-title">Organizers</div>
+          <div class="li-org-links">
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/_Rain_" target="_blank" rel="noopener">_Rain_</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/_snowman_" target="_blank" rel="noopener">_snowman_</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/Weedwoman420" target="_blank" rel="noopener">Weedwoman420</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/SuzyQQ" target="_blank" rel="noopener">SuzyQQ</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/Rainman772" target="_blank" rel="noopener">Rainman772</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/Despina11" target="_blank" rel="noopener">Despina11</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/Sue13" target="_blank" rel="noopener">Sue13</a>
+          </div>
+          <p class="li-join-note">Interested in joining? Send a message or friend request to any organizer above.</p>
+        </div>
+      </div>
+
+      <!-- Midnight Grind -->
+      <div class="li-card mg">
+        <div class="li-card-hdr">
+          <span class="li-card-icon">🌙</span>
+          <div class="li-card-titles">
+            <span class="li-card-name">Midnight Grind Team Poker</span>
+            <span class="li-card-tag">Team League · Private · Played Inside Leagues Invitational · 20,000 Chip Entry</span>
+          </div>
+        </div>
+        <div class="li-card-body">
+          <p class="li-desc">Midnight Grind is a private team poker league whose games run inside the Leagues Invitational lobby. Each session is named after the day it&rsquo;s played. Teams battle across four weekly grinds for a spot on the leaderboard.</p>
+          <div class="li-section-title">Weekly Schedule (9:00 PM EST)</div>
+          <div class="li-schedule">
+            <div class="li-sched-row"><span class="li-sched-day">Monday</span><span class="li-sched-time">9:00 PM</span><span class="li-sched-game">Monday Grind</span></div>
+            <div class="li-sched-row"><span class="li-sched-day">Wednesday</span><span class="li-sched-time">9:00 PM</span><span class="li-sched-game">Wednesday Grind</span></div>
+            <div class="li-sched-row"><span class="li-sched-day">Thursday</span><span class="li-sched-time">9:00 PM</span><span class="li-sched-game">Thursday Grind</span></div>
+            <div class="li-sched-row"><span class="li-sched-day">Sunday</span><span class="li-sched-time">9:00 PM</span><span class="li-sched-game">Sunday Grind</span></div>
+          </div>
+          <div class="li-section-title">Links</div>
+          <div class="li-links">
+            <a class="li-link" href="https://www.casino.org/replaypoker/leagues/77" target="_blank" rel="noopener">🏰 Leagues Invitational Lobby</a>
+            <a class="li-link" href="https://rainsplace.github.io/MGWebApp/" target="_blank" rel="noopener">📊 Web App Leaderboard</a>
+            <a class="li-link" href="https://docs.google.com/spreadsheets/d/1T6rjwont2RfZ2PQY4D6ejgocLeN3WqNH7HYH5jsdpm8/edit?gid=2112906447#gid=2112906447" target="_blank" rel="noopener">📋 Sheets Leaderboard</a>
+            <a class="li-link" href="https://rainsplace.github.io/Avatars/" target="_blank" rel="noopener">🎭 Team Avatars</a>
+          </div>
+          <div class="li-section-title">Organizers</div>
+          <div class="li-org-links">
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/_Rain_" target="_blank" rel="noopener">_Rain_</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/_snowman_" target="_blank" rel="noopener">_snowman_</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/SuzyQQ" target="_blank" rel="noopener">SuzyQQ</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/Rainman772" target="_blank" rel="noopener">Rainman772</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/Despina11" target="_blank" rel="noopener">Despina11</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/Sue13" target="_blank" rel="noopener">Sue13</a>
+          </div>
+          <p class="li-join-note">Interested in joining? Send a message or friend request to any organizer above.</p>
+        </div>
+      </div>
+
+      <!-- Early Birds -->
+      <div class="li-card eb">
+        <div class="li-card-hdr">
+          <span class="li-card-icon">🐦</span>
+          <div class="li-card-titles">
+            <span class="li-card-name">Early Birds Team League</span>
+            <span class="li-card-tag">Team League · Private · Daily Midday Games · 5,000 Chip Entry</span>
+          </div>
+        </div>
+        <div class="li-card-body">
+          <p class="li-desc">Early Birds is a team-based private league with daily midday games in both MTT and cutthroat formats. Five game types rotate through the week, with each scored session paired with a fast-paced cutthroat event. Monthly Members Appreciation games are open to all with an added prize pool.</p>
+          <div class="li-section-title">Weekly Schedule (EDT)</div>
+          <div class="li-schedule">
+            <div class="li-sched-row"><span class="li-sched-day">Monday</span><span class="li-sched-time">2:30 PM</span><span class="li-sched-game">Royal Tea Party <span class="li-sched-note">NL Royal Hold'em · 6-max · + Cutthroat Royal</span></span></div>
+            <div class="li-sched-row"><span class="li-sched-day">Tuesday</span><span class="li-sched-time">2:30 PM</span><span class="li-sched-game">Down-The-River <span class="li-sched-note">FL 7 Card Stud Hi/Lo · 6-max · + Cutthroat Stud</span></span></div>
+            <div class="li-sched-row"><span class="li-sched-day">Thursday</span><span class="li-sched-time">2:30 PM</span><span class="li-sched-game">Split The Pot <span class="li-sched-note">Omaha Hi/Lo · 6-max · + Cutthroat Omaha</span></span></div>
+            <div class="li-sched-row"><span class="li-sched-day">Friday</span><span class="li-sched-time">2:30 PM</span><span class="li-sched-game">Team Practice <span class="li-sched-note">Rotating game type · not scored</span></span></div>
+            <div class="li-sched-row"><span class="li-sched-day">Saturday</span><span class="li-sched-time">2:30 PM</span><span class="li-sched-game">Go For Broke <span class="li-sched-note">NL Hold'em · 6-max · + Cutthroat Hold'em</span></span></div>
+          </div>
+          <div class="li-section-title">Monthly Events</div>
+          <div class="li-schedule">
+            <div class="li-sched-row"><span class="li-sched-day">1st &amp; Last Sun</span><span class="li-sched-time">2:30 PM EDT</span><span class="li-sched-game">Members Appreciation MTT <span class="li-sched-note">NL Hold'em or Omaha Hi/Lo · Bounties · Added Prize Pool · Not Scored</span></span></div>
+          </div>
+          <div class="li-section-title">Links</div>
+          <div class="li-links">
+            <a class="li-link" href="https://www.casino.org/replaypoker/leagues/65" target="_blank" rel="noopener">🏰 League Lobby</a>
+            <a class="li-link" href="https://rainsplace.github.io/EBApp/" target="_blank" rel="noopener">📊 Web App Leaderboard</a>
+            <a class="li-link" href="https://docs.google.com/spreadsheets/d/15uamnSc938MlU2FWu0KQibobJYtALHKU_Wgkf7VhTOQ/edit?gid=2112906447#gid=2112906447" target="_blank" rel="noopener">📋 Sheets Leaderboard</a>
+            <a class="li-link" href="https://docs.google.com/document/d/1Whcr8I2p2DkAgavXwNzMfeEHM9tByjaK7wzUC_04xes/edit?usp=sharing" target="_blank" rel="noopener">📖 New Player Info</a>
+            <a class="li-link" href="https://script.google.com/macros/s/AKfycbwyseXz3fBGATsMZjcgAdvpm3w_dPrOM9vOwIlkwyn-I1J05pIGablBnAaSnJU7B8RWEA/exec" target="_blank" rel="noopener">🎖 Captain&rsquo;s Hub</a>
+          </div>
+          <div class="li-section-title">Organizers</div>
+          <div class="li-org-links">
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/Weedwoman420" target="_blank" rel="noopener">Weedwoman420</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/SuzyQQ" target="_blank" rel="noopener">SuzyQQ</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/Grampenstein" target="_blank" rel="noopener">Grampenstein</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/_Rain_" target="_blank" rel="noopener">_Rain_</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/Sue13" target="_blank" rel="noopener">Sue13</a>
+          </div>
+          <p class="li-join-note">Interested in joining? Send a message or friend request to any organizer above.</p>
+        </div>
+      </div>
+
+      <!-- Gramps University -->
+      <div class="li-card eb">
+        <div class="li-card-hdr">
+          <span class="li-card-icon">🎓</span>
+          <div class="li-card-titles">
+            <span class="li-card-name">Gramps University</span>
+            <span class="li-card-tag">Early Birds Training League · Open to EB Members · 1,000 Chip Entry</span>
+          </div>
+        </div>
+        <div class="li-card-body">
+          <p class="li-desc">Gramps University is the Early Birds training camp &mdash; a low-stakes practice league where members sharpen their skills across rotating game types to prepare for team competition. Entry is just 1,000 chips, so there&rsquo;s no pressure, only practice.</p>
+          <div class="li-section-title">Friday Rotation (2:30 PM EDT)</div>
+          <div class="li-schedule">
+            <div class="li-sched-row"><span class="li-sched-day">Week 1</span><span class="li-sched-time">Friday</span><span class="li-sched-game">FL 7 Card Stud Hi/Lo <span class="li-sched-note">1,000 chip entry</span></span></div>
+            <div class="li-sched-row"><span class="li-sched-day">Week 2</span><span class="li-sched-time">Friday</span><span class="li-sched-game">NL Omaha Hi/Lo <span class="li-sched-note">1,000 chip entry</span></span></div>
+            <div class="li-sched-row"><span class="li-sched-day">Week 3</span><span class="li-sched-time">Friday</span><span class="li-sched-game">NL Royal Hold&rsquo;em <span class="li-sched-note">1,000 chip entry</span></span></div>
+          </div>
+          <div class="li-section-title">Members Appreciation Events</div>
+          <div class="li-schedule">
+            <div class="li-sched-row"><span class="li-sched-day">1st &amp; Last Sun</span><span class="li-sched-time">2:30 PM EDT</span><span class="li-sched-game">Members Appreciation MTT <span class="li-sched-note">NL Hold'em or Omaha Hi/Lo · Alternating · Added Prize Pool</span></span></div>
+          </div>
+          <div class="li-section-title">Links</div>
+          <div class="li-links">
+            <a class="li-link" href="https://docs.google.com/spreadsheets/d/1qZphyZeFvod-Eecm1HAt9PJZphx-CiZlJHC5n-sZCrI/edit?gid=1313007334#gid=1313007334" target="_blank" rel="noopener">📋 Leaderboard</a>
+            <a class="li-link" href="https://script.google.com/macros/s/AKfycbwyseXz3fBGATsMZjcgAdvpm3w_dPrOM9vOwIlkwyn-I1J05pIGablBnAaSnJU7B8RWEA/exec" target="_blank" rel="noopener">🎖 EB Captain&rsquo;s Hub</a>
+          </div>
+          <div class="li-section-title">Organizers</div>
+          <div class="li-org-links">
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/Grampenstein" target="_blank" rel="noopener">Grampenstein</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/Weedwoman420" target="_blank" rel="noopener">Weedwoman420</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/SuzyQQ" target="_blank" rel="noopener">SuzyQQ</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/_Rain_" target="_blank" rel="noopener">_Rain_</a>
+            <a class="li-org-link" href="https://www.casino.org/replaypoker/profile/Sue13" target="_blank" rel="noopener">Sue13</a>
+          </div>
+          <p class="li-join-note">Early Birds members are welcome anytime &mdash; just show up and play. Questions? Reach out to any organizer above.</p>
+        </div>
+      </div>
+
+      <p class="li-note">Interested in joining any of these leagues? Let _Rain_ or any of the organizers know &mdash; happy to have you on board.</p>
+
+    </div>
+    </div><!-- end tab-leagueinfo -->
+
+    <script>
+        const username = 'RainsPlace';
+        const repo = 'ImageSpace';
+
+        function switchTab(name) {
+            document.querySelectorAll('#tab-gallery, #tab-leagueinfo').forEach(p => p.style.display = 'none');
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + name).style.display = 'block';
+            document.querySelector(`.tab-btn[onclick="switchTab('${name}')"]`).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toast(msg) {
+            let t = document.getElementById('toast');
+            if (!t) { t = document.createElement('div'); t.id = 'toast'; document.body.appendChild(t); }
+            t.textContent = msg; t.classList.add('show');
+            clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 2600);
+        }
+        function flash(btn, ok, label) {
+            const old = btn.dataset.label || btn.textContent; btn.dataset.label = old;
+            btn.textContent = label; btn.classList.add(ok ? 'ok' : 'err');
+            setTimeout(() => { btn.textContent = old; btn.classList.remove('ok', 'err'); }, 1800);
+        }
+        async function toPngBlob(url) {
+            const res = await fetch(url, { mode: 'cors' });
+            const blob = await res.blob();
+            if (blob.type === 'image/png') return blob;
+            const bmp = await createImageBitmap(blob);
+            const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height;
+            c.getContext('2d').drawImage(bmp, 0, 0);
+            return await new Promise(r => c.toBlob(r, 'image/png'));
+        }
+        async function copyImage(btn) {
+            const url = btn.closest('.img-card').dataset.url;
+            try {
+                if (!navigator.clipboard || !window.ClipboardItem) throw new Error('unsupported');
+                await navigator.clipboard.write([new ClipboardItem({ 'image/png': toPngBlob(url) })]);
+                flash(btn, true, '✓ Copied'); toast('Image copied! Press Ctrl+V to paste it.');
+            } catch (e) {
+                flash(btn, false, '✗'); toast('Your browser blocked copying — right-click the picture and choose "Copy Image".');
+            }
+        }
+        async function copyLink(btn) {
+            const url = btn.closest('.img-card').dataset.url;
+            try {
+                await navigator.clipboard.writeText(url);
+                flash(btn, true, '✓ Copied'); toast('Direct image link copied!');
+            } catch (e) { prompt('Copy this link:', url); }
+        }
+        async function downloadImage(btn) {
+            const card = btn.closest('.img-card');
+            const url = card.dataset.url, file = card.dataset.file;
+            try {
+                const blob = await (await fetch(url, { mode: 'cors' })).blob();
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob); a.download = file;
+                document.body.appendChild(a); a.click(); a.remove();
+                setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+                flash(btn, true, '✓ Saved'); toast('Saved to your Downloads folder as ' + file);
+            } catch (e) { window.open(url, '_blank'); }
+        }
+        async function copyDMLink(btn) {
+            const card = btn.closest('.img-card');
+            const url = card.dataset.url;
+            const name = card.dataset.name;
+            const md = `![${name}](${url})`;
+            try {
+                await navigator.clipboard.writeText(md);
+                flash(btn, true, '✓ Copied'); toast('Replay DM link copied! Paste it into a private message.');
+            } catch (e) { prompt('Copy this DM link:', md); }
+        }
+
+        const CACHE_KEY = 'imagespace_gallery';
+        const CACHE_TTL = 24 * 60 * 60 * 1000;
+
+        function renderGallery(folders) {
+            const container = document.getElementById('main-container');
+            container.innerHTML = '';
+            for (const folder of folders) {
+                const section = document.createElement('div');
+                section.className = 'league-section';
+                section.innerHTML = `<div class="league-title">${folder.name}</div><div class="gallery" id="gal-${folder.name.replace(/\s/g, '')}"></div>`;
+                container.appendChild(section);
+                const gallery = document.getElementById(`gal-${folder.name.replace(/\s/g, '')}`);
+                folder.files.forEach(file => {
+                    const cleanName = file.name.split('.')[0].replace(/([A-Z])/g, ' $1').trim();
+                    gallery.innerHTML += `
+                        <div class="img-card" data-url="${file.download_url}" data-file="${file.name}" data-name="${cleanName}">
+                            <img src="${file.download_url}" alt="${cleanName}" crossorigin="anonymous" draggable="true" title="Drag into Replay's message box">
+                            <div class="name">${cleanName}</div>
+                            <div class="card-actions">
+                                <button class="act-btn" onclick="copyImage(this)" title="Copy image to clipboard">📋 Copy</button>
+                                <button class="act-btn" onclick="copyLink(this)" title="Copy direct image URL">🔗 Link</button>
+                                <button class="act-btn" onclick="downloadImage(this)" title="Save to your computer">💾 Save</button>
+                                <button class="act-btn dm" onclick="copyDMLink(this)" title="Copy Replay DM markdown link">💬 DM</button>
+                            </div>
+                        </div>`;
+                });
+            }
+        }
+
+        async function initGallery() {
+            const container = document.getElementById('main-container');
+            try {
+                const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+                if (cached && (Date.now() - cached.ts < CACHE_TTL)) {
+                    renderGallery(cached.folders);
+                    return;
+                }
+
+                const response = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/`);
+                if (!response.ok) throw new Error(`GitHub API ${response.status}`);
+                const items = await response.json();
+
+                const folders = [];
+                for (const item of items) {
+                    if (item.type === 'dir') {
+                        const resImg = await fetch(item.url);
+                        if (!resImg.ok) throw new Error(`GitHub API ${resImg.status}`);
+                        const files = await resImg.json();
+                        folders.push({
+                            name: item.name,
+                            files: files
+                                .filter(f => f.name.match(/\.(png|jpg|jpeg|gif|webp)$/i))
+                                .map(f => ({ name: f.name, download_url: f.download_url }))
+                        });
+                    }
+                }
+
+                localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), folders }));
+                renderGallery(folders);
+            } catch (e) { container.textContent = `Error loading folders: ${e.message}`; }
+        }
+
+        function refreshGallery(btn) {
+            localStorage.removeItem(CACHE_KEY);
+            if (btn) { btn.textContent = '⏳ Loading…'; btn.disabled = true; }
+            initGallery().then(() => {
+                if (btn) { btn.textContent = '🔄 Refresh Gallery'; btn.disabled = false; }
+            });
+        }
+
+        initGallery();
+    </script>
+</body>
+</html>
 
