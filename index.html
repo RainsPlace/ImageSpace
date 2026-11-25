@@ -118,6 +118,40 @@
         .li-card.hr .li-link{border-color:rgba(96,192,128,.25);color:#60c080;} .li-card.hr .li-link:hover{background:rgba(96,192,128,.1);border-color:#60c080;color:#fff;}
 
         @media(max-width:700px) { .card-actions{flex-wrap:wrap;} }
+
+        /* DM GUIDE */
+        .dg-wrap { max-width:860px; margin:0 auto; padding:8px 20px 48px; text-align:left; }
+        .dg-intro { font-size:1rem; color:var(--text-dim); line-height:1.7; margin-bottom:28px; text-align:center; font-style:italic; }
+        .dg-card { background:var(--bg-card); border:1px solid var(--border-gold); border-radius:10px; overflow:hidden; margin-bottom:28px; }
+        .dg-hdr { display:flex; align-items:center; gap:14px; padding:16px 22px; background:var(--bg-dark); border-bottom:2px solid var(--border-gold); }
+        .dg-icon { font-size:1.6rem; flex-shrink:0; }
+        .dg-name { font-family:'Cinzel',serif; font-size:1.15rem; font-weight:700; letter-spacing:.08em; color:var(--gold); }
+        .dg-tag { display:block; font-family:'Cinzel',serif; font-size:.72rem; letter-spacing:.16em; color:var(--text-dim); text-transform:uppercase; margin-top:2px; }
+        .dg-body { padding:18px 22px; }
+        .dg-sub { font-family:'Cinzel',serif; font-size:.8rem; font-weight:700; letter-spacing:.2em; color:var(--gold-light); text-transform:uppercase; margin:20px 0 10px; border-bottom:1px solid var(--border); padding-bottom:6px; }
+        .dg-sub:first-child { margin-top:0; }
+        .dg-p { font-size:1rem; line-height:1.7; color:var(--text-main); margin:0 0 12px; }
+        .dg-syntax { background:var(--bg-dark); border:1px solid var(--border); border-radius:6px; padding:12px 18px; font-family:monospace; font-size:1.05rem; color:var(--gold-light); margin:12px 0; letter-spacing:.02em; }
+        .dg-example { background:var(--bg-panel); border-left:3px solid var(--gold); border-radius:0 6px 6px 0; padding:10px 16px; font-family:monospace; font-size:.88rem; color:var(--text-main); margin:4px 0 16px; word-break:break-all; line-height:1.6; }
+        .dg-result { font-size:.88rem; color:var(--text-dim); font-style:italic; margin-top:-8px; margin-bottom:16px; }
+        .dg-rules { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:7px; }
+        .dg-rules li { position:relative; padding:10px 14px 10px 42px; background:var(--bg-panel); border-radius:6px; line-height:1.6; font-size:.97rem; }
+        .dg-rules li::before { content:'⚠'; position:absolute; left:12px; top:10px; color:var(--gold); }
+        .dg-rules li b { color:var(--gold-light); }
+        .dg-rules li code { font-family:monospace; font-size:.88rem; background:var(--bg-dark); padding:1px 6px; border-radius:3px; color:#2ecfff; }
+        .dg-table { width:100%; border-collapse:collapse; margin-top:8px; font-size:.95rem; }
+        .dg-table th { background:var(--bg-dark); color:var(--gold); font-family:'Cinzel',serif; font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; padding:10px 14px; text-align:left; border:1px solid var(--border); }
+        .dg-table td { padding:9px 14px; border:1px solid var(--border); line-height:1.5; vertical-align:middle; color:var(--text-main); }
+        .dg-table td:last-child { font-family:monospace; font-size:.88rem; color:#2ecfff; background:rgba(0,0,0,.2); white-space:nowrap; }
+        .dg-table tr:nth-child(even) td { background:rgba(255,255,255,.02); }
+        .dg-table tr:nth-child(even) td:last-child { background:rgba(0,0,0,.3); }
+        .dg-template-wrap { position:relative; margin-top:10px; }
+        .dg-template { background:var(--bg-dark); border:1px solid var(--border); border-radius:6px; padding:18px 18px 18px 18px; font-family:monospace; font-size:.9rem; color:var(--text-main); line-height:1.9; white-space:pre; overflow-x:auto; }
+        .dg-copy-tpl { position:absolute; top:10px; right:10px; font-family:'Cinzel',serif; font-size:.6rem; font-weight:700; letter-spacing:.08em; padding:5px 13px; border-radius:20px; border:1px solid var(--border-gold); background:rgba(201,168,76,.08); color:var(--gold); cursor:pointer; transition:all .2s; }
+        .dg-copy-tpl:hover { background:rgba(201,168,76,.2); border-color:var(--gold); color:var(--gold-light); }
+        .dg-copy-tpl.ok { border-color:#60c080; color:#60c080; }
+        .dg-tip { margin-top:16px; padding:11px 16px; border-left:3px solid var(--gold); background:rgba(201,168,76,.05); border-radius:0 6px 6px 0; font-size:.93rem; line-height:1.6; color:var(--text-main); }
+        @media(max-width:600px) { .dg-table td:last-child { white-space:normal; } }
     </style>
 </head>
 <body>
@@ -126,6 +160,7 @@
 
     <nav class="tab-nav">
         <button class="tab-btn active" onclick="switchTab('gallery')">🖼 Image Gallery</button>
+        <button class="tab-btn" onclick="switchTab('dmguide')">📨 DM Guide</button>
         <button class="tab-btn" onclick="switchTab('leagueinfo')">🗺 Leagues Info</button>
     </nav>
 
@@ -140,6 +175,85 @@
             <img id="page-counter" src="https://hitscounter.dev/api/hit?url=https%3A%2F%2Frainsplace.github.io%2FImageSpace%2F&label=Visits&icon=image&color=%23c9a84c&style=flat">
         </div>
     </div>
+
+    <!-- DM GUIDE TAB -->
+    <div id="tab-dmguide" style="display:none">
+    <div class="dg-wrap">
+
+      <p class="dg-intro">Replay Poker messages support Markdown formatting. Here&rsquo;s everything you need to embed images, style text, and build polished tournament announcements directly in a private message.</p>
+
+      <!-- Embedding an Image -->
+      <div class="dg-card">
+        <div class="dg-hdr"><span class="dg-icon">🖼</span><div><span class="dg-name">Embedding an Image</span><span class="dg-tag">The core syntax — one line is all it takes</span></div></div>
+        <div class="dg-body">
+          <div class="dg-sub">Syntax</div>
+          <div class="dg-syntax">![description](image URL)</div>
+          <div class="dg-sub">Example</div>
+          <div class="dg-example">![Early Bird Banner](https://raw.githubusercontent.com/RainsPlace/Avatars/main/Early%20Bird/EB1.jpg)</div>
+          <p class="dg-result">When the recipient opens the message, the image appears inline in the message body — no link, no attachment, just the image.</p>
+          <div class="dg-tip">The <b>DM</b> button under every image in this gallery copies exactly this format for you, with the correct filename and URL already filled in. Just paste it into your message.</div>
+        </div>
+      </div>
+
+      <!-- Rules -->
+      <div class="dg-card">
+        <div class="dg-hdr"><span class="dg-icon">📋</span><div><span class="dg-name">Rules to Know</span><span class="dg-tag">Four things that will save you troubleshooting time</span></div></div>
+        <div class="dg-body">
+          <ul class="dg-rules">
+            <li><b>Direct image URL only.</b> The URL must point straight to the image file — not a webpage that contains an image. GitHub raw links (<code>raw.githubusercontent.com/&hellip;</code>) work perfectly. A link to a GitHub file page or Google Drive preview will not work.</li>
+            <li><b>No HTML.</b> Do not use <code>&lt;img src="&hellip;"&gt;</code> — Replay strips all HTML tags silently. You will see nothing, with no error message.</li>
+            <li><b>No size control.</b> There is no way to set a width or height in Replay Markdown. The image renders at its natural/original size. If it looks too big or too small, the source image file itself needs to be resized before uploading.</li>
+            <li><b>Spaces in URLs must be encoded.</b> Replace every space with <code>%20</code>. Example: <code>My Image.jpg</code> &rarr; <code>My%20Image.jpg</code>. Images from this gallery already have correct URLs — the DM button handles this automatically.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Markdown Reference -->
+      <div class="dg-card">
+        <div class="dg-hdr"><span class="dg-icon">✍️</span><div><span class="dg-name">Other Markdown You Can Use</span><span class="dg-tag">Use these alongside images to build a full announcement</span></div></div>
+        <div class="dg-body">
+          <table class="dg-table">
+            <thead><tr><th>What you want</th><th>Syntax</th></tr></thead>
+            <tbody>
+              <tr><td>Bold text</td><td>**text**</td></tr>
+              <tr><td>Italic text</td><td>*text*</td></tr>
+              <tr><td>Large header</td><td>## Header</td></tr>
+              <tr><td>Smaller header</td><td>#### Smaller header</td></tr>
+              <tr><td>Clickable link</td><td>[link text](url)</td></tr>
+              <tr><td>Horizontal rule / divider</td><td>---</td></tr>
+              <tr><td>New paragraph</td><td>leave a blank line between blocks</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Quick Template -->
+      <div class="dg-card">
+        <div class="dg-hdr"><span class="dg-icon">⚡</span><div><span class="dg-name">Quick Template</span><span class="dg-tag">Copy &rarr; paste into Replay &rarr; fill in your details</span></div></div>
+        <div class="dg-body">
+          <p class="dg-p">A ready-to-use tournament announcement. Replace each placeholder with your real info, then swap in the image DM link from this gallery.</p>
+          <div class="dg-template-wrap">
+            <button class="dg-copy-tpl" onclick="copyTemplate(this)">📋 Copy</button>
+            <div class="dg-template" id="dm-template">#### League Name
+
+## Tournament Name
+
+![Tournament Name](https://your-image-url-here.jpg)
+
+---
+
+**Game:** No-Limit Hold'em
+**Date:** Friday, Nov 21
+**Time:** 9:00 PM ET
+
+**[Register Here](https://your-registration-link)**</div>
+          </div>
+          <div class="dg-tip" style="margin-top:18px;">Grab the right image URL by clicking <b>DM</b> under any image in the gallery — it copies the <code>![name](url)</code> line for you. Paste it in place of the <code>![Tournament Name](&hellip;)</code> line above.</div>
+        </div>
+      </div>
+
+    </div>
+    </div><!-- end tab-dmguide -->
 
     <!-- LEAGUES INFO TAB -->
     <div id="tab-leagueinfo" style="display:none">
@@ -476,7 +590,7 @@
         const repo = 'ImageSpace';
 
         function switchTab(name) {
-            document.querySelectorAll('#tab-gallery, #tab-leagueinfo').forEach(p => p.style.display = 'none');
+            document.querySelectorAll('#tab-gallery, #tab-dmguide, #tab-leagueinfo').forEach(p => p.style.display = 'none');
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('tab-' + name).style.display = 'block';
             document.querySelector(`.tab-btn[onclick="switchTab('${name}')"]`).classList.add('active');
@@ -531,6 +645,15 @@
                 setTimeout(() => URL.revokeObjectURL(a.href), 4000);
                 flash(btn, true, '✓ Saved'); toast('Saved to your Downloads folder as ' + file);
             } catch (e) { window.open(url, '_blank'); }
+        }
+        async function copyTemplate(btn) {
+            const text = document.getElementById('dm-template').textContent;
+            try {
+                await navigator.clipboard.writeText(text);
+                btn.textContent = '✓ Copied'; btn.classList.add('ok');
+                setTimeout(() => { btn.textContent = '📋 Copy'; btn.classList.remove('ok'); }, 2000);
+                toast('Template copied! Paste it into a Replay private message.');
+            } catch (e) { prompt('Copy this template:', text); }
         }
         async function copyDMLink(btn) {
             const card = btn.closest('.img-card');
