@@ -587,23 +587,39 @@
                 const items = await response.json();
 
                 const folders = [];
+
+                // Root-level images → show in an "Images" section
+                const rootImages = items.filter(f => f.type === 'file' && f.name.match(/\.(png|jpg|jpeg|gif|webp)$/i));
+                if (rootImages.length) {
+                    folders.push({
+                        name: 'Images',
+                        files: rootImages.map(f => ({ name: f.name, download_url: f.download_url }))
+                    });
+                }
+
+                // Subfolder images → one section per folder
                 for (const item of items) {
                     if (item.type === 'dir') {
                         const resImg = await fetch(item.url);
                         if (!resImg.ok) throw new Error(`GitHub API ${resImg.status}`);
                         const files = await resImg.json();
-                        folders.push({
-                            name: item.name,
-                            files: files
-                                .filter(f => f.name.match(/\.(png|jpg|jpeg|gif|webp)$/i))
-                                .map(f => ({ name: f.name, download_url: f.download_url }))
-                        });
+                        const imgFiles = files.filter(f => f.name.match(/\.(png|jpg|jpeg|gif|webp)$/i));
+                        if (imgFiles.length) {
+                            folders.push({
+                                name: item.name,
+                                files: imgFiles.map(f => ({ name: f.name, download_url: f.download_url }))
+                            });
+                        }
                     }
                 }
 
                 localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), folders }));
                 renderGallery(folders);
-            } catch (e) { container.textContent = `Error loading folders: ${e.message}`; }
+                if (!folders.length) {
+                    container.textContent = 'No images found. Add image files to the ImageSpace repository and click Refresh Gallery.';
+                    return;
+                }
+            } catch (e) { container.textContent = `Error loading gallery: ${e.message}`; }
         }
 
         function refreshGallery(btn) {
@@ -618,4 +634,3 @@
     </script>
 </body>
 </html>
-
